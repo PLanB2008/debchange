@@ -15,6 +15,7 @@ import sys
 import re
 import time
 import argparse
+import subprocess
 
 EDITOR = os.environ.get('EDITOR','vim')
 __version__ = 'version 0.1.0'
@@ -82,20 +83,38 @@ def getInformation():
 def tags():
     info = getInformation()
     #print ('tags')
-    print (info['pkg_version'])
+    #output = subprocess.check_output(['git', 'tag'],  shell=False, text=True).strip()
+    cmd = subprocess.run(['git', 'tag'], capture_output=True, text=True)
+    tags=[]
+    for line in cmd.stdout.splitlines():
+        tags.append(line)
+    #print (tags)
+    if 'v'+info['pkg_version'] not in tags:
+        print ('Adding tag+ v'+info['pkg_version'])
+        cmd = subprocess.run(['git', 'tag', 'v'+info['pkg_version']], capture_output=True, text=True)
+        print (cmd.stdout)
+        print ('Push tags')
+        cmd = subprocess.run(['git', 'push', '--tags'], capture_output=True, text=True)
+        print (cmd.stdout)
+        cmd = subprocess.run(['git', 'tag'], capture_output=True, text=True)
+        print (cmd.stdout)
+    else:
+        print ('Tag v'+info['pkg_version']+' already exists')
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='debhelper alternative written in python')
     parser.add_argument('-v', dest='version', action='store_true', help='print the version and exit')
     parser.add_argument('-t', dest='tags', action='store_true',
-                    help='show all tasks in the specified task list')
+                    help='update and push git tag')
+    parser.add_argument('-u', dest='update', action='store_true',
+                    help='update and iterate debian/changelog')
     args = parser.parse_args()
     if args.version:
         print (__version__)
-		quit()
-    
     if args.tags is not False:
         tags()
-    else:
+    if args.update is not False:
         main()
+    else:
+        parser.print_help()
