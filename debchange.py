@@ -16,6 +16,7 @@ import re
 import time
 import argparse
 import subprocess
+import filecmp
 
 EDITOR = os.environ.get('EDITOR','vim')
 __version__ = 'version 0.1.0'
@@ -45,25 +46,34 @@ def main():
     # Templated Changelog Entry 
     template = """%(pkg_name)s (%(pkg_version)s) %(pkg_distrib)s; urgency=low
 
-      * 
+  * 
 
-     -- %(debfullname)s <%(debemail)s>  %(debian_formatted_date)s
+ -- %(debfullname)s <%(debemail)s>  %(debian_formatted_date)s
 
-    """
+"""
 
-    pushed_content = template %info + changelog_content
+    pushed_content = template %info + info['changelog_content']
 
     with tempfile.NamedTemporaryFile() as f:
 
         # Write template contents
-        f.write(pushed_content)
+        f.write(pushed_content.encode())
         f.flush()
 
         # Spawn Editor 
+        shutil.copyfile(f.name, "debian/check_tmp")
         call([EDITOR, f.name])
 
-        # Copy new file 
-        shutil.copyfile(f.name, "debian/changelog")
+        # check if changes where made
+        if not filecmp.cmp(f.name, 'debian/check_tmp'):
+            print('Written updateded changelog')
+            # Copy new file 
+            shutil.copyfile(f.name, "debian/changelog")
+            os.unlink('debian/check_tmp')
+        else:
+            print('Nothing changed')
+            os.unlink('debian/check_tmp')
+
 
 def getInformation():
     # read changelog file
@@ -78,6 +88,7 @@ def getInformation():
     template = re.compile(r"^(?P<pkg_name>.*) \((?P<pkg_version>.*)\) (?P<pkg_distrib>.*); (?P<pkg_urgency>.*)$" )
     m = template.match(first_line)
     info = m.groupdict()
+    info['changelog_content'] = changelog_content
     return info
 
 def tags():
