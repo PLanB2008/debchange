@@ -107,14 +107,14 @@ def tags():
         tags.append(line)
     #print (tags)
     if 'v'+info['pkg_version'] not in tags:
-        print ('Adding tag+ v'+info['pkg_version'])
+        print ('Adding tag v'+info['pkg_version'])
         cmd = subprocess.run(['git', 'tag', 'v'+info['pkg_version']], capture_output=True, text=True)
         print (cmd.stdout)
-        print ('Push tags')
+        print ('Pushing tags')
         cmd = subprocess.run(['git', 'push', '--tags'], capture_output=True, text=True)
         print (cmd.stdout)
-        cmd = subprocess.run(['git', 'tag'], capture_output=True, text=True)
-        print (cmd.stdout)
+        #cmd = subprocess.run(['git', 'tag'], capture_output=True, text=True)
+        #print (cmd.stdout)
     else:
         print ('Tag v'+info['pkg_version']+' already exists')
 
@@ -129,9 +129,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.version:
         print (__version__)
+        quit()
     if args.tags is not False:
         tags()
+        quit()
     if args.update is not False:
         main()
+        quit()
     else:
         parser.print_help()
