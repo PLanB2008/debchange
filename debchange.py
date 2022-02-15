@@ -38,10 +38,16 @@ def main():
     # date format example: Fri, 13 Jul 2012 15:05:04 +0200
     info['debian_formatted_date'] = time.strftime("%a, %d %b %Y %H:%M:%S +0200", time.localtime())
     version = info['pkg_version']
-    minor= version.split('-')[1]
-    version = version.split('.')
-    version[2] = str(int(version[2].split('-')[0]) + 1)
-    info['pkg_version']= '.'.join(version)+'-'+minor
+
+    if "-" in version:
+        minor= version.split('-')[1]
+        version = version.split('.')
+        version[-1] = str(int(version[-1].split('-')[0]) + 1)
+        info['pkg_version']= '.'.join(version)+'-'+minor
+    else:
+        version = version.split('.')
+        version[-1] = str(int(version[-1]) + 1)
+        info['pkg_version']= '.'.join(version)
 
     # Templated Changelog Entry 
     template = """%(pkg_name)s (%(pkg_version)s) %(pkg_distrib)s; urgency=low
