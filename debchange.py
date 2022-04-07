@@ -97,7 +97,7 @@ def getInformation():
     info['changelog_content'] = changelog_content
     return info
 
-def tags():
+def check_if_tag_exists(tag):
     info = getInformation()
     #print ('tags')
     #output = subprocess.check_output(['git', 'tag'],  shell=False, text=True).strip()
@@ -105,8 +105,13 @@ def tags():
     tags=[]
     for line in cmd.stdout.splitlines():
         tags.append(line)
-    #print (tags)
-    if 'v'+info['pkg_version'] not in tags:
+    if tag in tags:
+        return True
+    else:
+        return False
+
+def tags():
+    if not check_if_tag_exists('v'+info['pkg_version']):
         print ('Adding tag v'+info['pkg_version'])
         cmd = subprocess.run(['git', 'tag', 'v'+info['pkg_version']], capture_output=True, text=True)
         print (cmd.stdout)
@@ -114,14 +119,25 @@ def tags():
         cmd = subprocess.run(['git', 'push', '--tags'], capture_output=True, text=True)
         print (cmd.stdout)
         #cmd = subprocess.run(['git', 'tag'], capture_output=True, text=True)
-        #print (cmd.stdout)
+        print (cmd.stdout)
     else:
         print ('Tag v'+info['pkg_version']+' already exists')
+
+def delete_last_tag():
+    if check_if_tag_exists('v'+info['pkg_version']):
+        cmd = subprocess.run(['git', 'tag', '-d', 'v'+info['pkg_version']], capture_output=True, text=True)
+        print (cmd.stdout)
+        cmd = subprocess.run(['git', 'push', '--delete', 'origin', 'v'+info['pkg_version']], capture_output=True, text=True)
+        print (cmd.stdout)
+    tags()
+
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='debhelper alternative written in python')
     parser.add_argument('-v', dest='version', action='store_true', help='print the version and exit')
+    parser.add_argument('-f', dest='force', action='store_true',
+                    help='force recreation of last tag')
     parser.add_argument('-t', dest='tags', action='store_true',
                     help='update and push git tag')
     parser.add_argument('-u', dest='update', action='store_true',
@@ -131,6 +147,8 @@ if __name__ == "__main__":
         print (__version__)
         quit()
     if args.tags is not False:
+        if args.force is not False:
+            delete_last_tag()
         tags()
         quit()
     if args.update is not False:
