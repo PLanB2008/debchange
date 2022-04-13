@@ -117,11 +117,14 @@ def tags():
         print ('Adding tag v'+info['pkg_version'])
         cmd = subprocess.run(['git', 'tag', 'v'+info['pkg_version']], capture_output=True, text=True)
         print (cmd.stdout)
+        print (cmd.stderr)
         print ('Pushing tags')
         cmd = subprocess.run(['git', 'push', '--tags'], capture_output=True, text=True)
         print (cmd.stdout)
+        print (cmd.stderr)
         #cmd = subprocess.run(['git', 'tag'], capture_output=True, text=True)
         print (cmd.stdout)
+        print (cmd.stderr)
     else:
         print ('Tag v'+info['pkg_version']+' already exists')
 
