@@ -17,6 +17,7 @@ import time
 import argparse
 import subprocess
 import filecmp
+from time import sleep
 
 EDITOR = os.environ.get('EDITOR','vim')
 __version__ = 'version 0.1.0'
@@ -111,6 +112,7 @@ def check_if_tag_exists(tag):
         return False
 
 def tags():
+    info = getInformation()
     if not check_if_tag_exists('v'+info['pkg_version']):
         print ('Adding tag v'+info['pkg_version'])
         cmd = subprocess.run(['git', 'tag', 'v'+info['pkg_version']], capture_output=True, text=True)
@@ -124,12 +126,18 @@ def tags():
         print ('Tag v'+info['pkg_version']+' already exists')
 
 def delete_last_tag():
+    info = getInformation()
     if check_if_tag_exists('v'+info['pkg_version']):
+        print ('Delete tag locally...')
         cmd = subprocess.run(['git', 'tag', '-d', 'v'+info['pkg_version']], capture_output=True, text=True)
         print (cmd.stdout)
+        print (cmd.stderr)
+        print ('Delete tag remote...')
         cmd = subprocess.run(['git', 'push', '--delete', 'origin', 'v'+info['pkg_version']], capture_output=True, text=True)
         print (cmd.stdout)
-    tags()
+        print (cmd.stderr)
+        sleep(4)
+
 
 
 
